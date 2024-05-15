@@ -1,37 +1,40 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract Alber {
-    address public owner;
-    uint256 public value;
-    uint256 public constant MAX_VALUE = 50000;
+contract Alber  {
 
-    constructor() {
-        owner = msg.sender;
+    address public minter;
+    mapping (address    =>  uint)   public balances;
+
+
+
+    event   Sent(address    from,   address to, uint    amount);
+
+
+
+    constructor()   {
+        minter  =   msg.sender;
+
     }
 
-    function increaseValue(uint256 _amount) external {
-        require(msg.sender == owner, "Only the owner can increase the value");
-        
-        // Ensure that the new value doesn't exceed the maximum value
-        uint256 newValue = value + _amount;
-        require(newValue <= MAX_VALUE, "Value cannot exceed the maximum limit");
-        
-        value = newValue;
+    function mint(address receiver,uint amount) public {
+        require(msg.sender  ==  minter   ,'Only owner can do it' );
+        balances[receiver]  +=  amount;
+
     }
 
-    function decreaseValue(uint256 _amount) external {
-        require(msg.sender == owner, "Only the owner can decrease the value");
-        
-        // Ensure that the value doesn't go below zero
-        require(value >= _amount, "Value cannot be decreased below zero");
-        
-        value -= _amount;
-    }
+    error InsufficientBalance(uint requested,   uint    available);
 
-    function transferOwnership(address _newOwner) external {
-        require(msg.sender == owner, "Only the owner can transfer ownership");
-        require(_newOwner != address(0), "Invalid new owner address");
-        
-        owner = _newOwner;
+    function send(address receiver,uint amount)public { 
+            if(amount > balances[msg.sender])
+           revert InsufficientBalance({
+            requested:  amount,
+            available:  balances[msg.sender]
+           });
+           
+        balances[msg.sender] -= amount;
+        balances[receiver] += amount;
+        emit Sent(msg.sender, receiver, amount);
+
     }
 }
