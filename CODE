@@ -26,6 +26,8 @@ contract Alber  {
     error InsufficientBalance(uint requested,   uint    available);
 
     function send(address receiver,uint amount)public { 
+         assert(amount > 0 );
+
             if(amount > balances[msg.sender])
            revert InsufficientBalance({
             requested:  amount,
